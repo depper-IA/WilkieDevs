@@ -1,0 +1,49 @@
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "fetch"
+      ]
+    },
+    "n8n-mcp": {
+      "command": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--init",
+        "-e",
+        "MCP_MODE=stdio",
+        "-e",
+        "LOG_LEVEL=error",
+        "-e",
+        "DISABLE_CONSOLE_OUTPUT=true",
+        "-e",
+        "N8N_API_URL=https://n8n.srv1004711.hstgr.cloud/",
+        "-e",
+        "N8N_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NGUxZTYyYi1kY2M0LTRiZGUtOWFjZS02OTBmMjAxMGIyMDAiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzU3NzM2NTI1fQ.ofJd3fVNzbroaMP3Kh9W76u4Ao4yfbCs7uKCA3Q4auU",
+        "ghcr.io/czlonkowski/n8n-mcp@sha256:80613ac30c3fe39a7b9d343104603804edfbc34c1cdc27e95459b15b7c651dd2"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "supabase": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-supabase"
+      ],
+      "env": {
+        "SUPABASE_URL": "https://ziglshuhhtsthwedrous.supabase.co",
+        "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppZ2xzaHVoaHRzdGh3ZWRyb3VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5NDczOTcsImV4cCI6MjA3MzUyMzM5N30.X_TT0-sA2y1Z5-BeizOxCMYaZraPM2IQo1-rqDMsF08"
+      },
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
