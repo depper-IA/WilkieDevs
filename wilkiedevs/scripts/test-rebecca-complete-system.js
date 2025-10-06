@@ -8,7 +8,7 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUz
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Webhook principal de Rebecca
-const rebeccaWebhook = 'https://n8n.wilkiedevs.com/webhook/c4ce0742-8638-47b6-9507-a8bd7bb63896';
+const rebeccaWebhook = 'https://n8n.wilkiedevs.com/webhook/chatbot-rebecca';
 
 // Función para enviar mensaje a Rebecca
 async function sendMessageToRebecca(message, sessionId = null) {

@@ -13,7 +13,7 @@ const projects = [
     duration: '2-4 Semanas',
     type: 'Vitrina Virtual',
     url: 'lamontana-agromercados.com',
-    image: 'https://wilkiedevs.com/wp-content/uploads/2025/01/la-montana-agromercados.jpg',
+    image: '/images/case-study-1.webp',
     technologies: ['WordPress', 'WooCommerce', 'SEO', 'Responsive'],
     href: '/portfolio/la-montana-agromercados'
   },
@@ -24,7 +24,7 @@ const projects = [
     status: 'online',
     type: 'Corporativo',
     url: 'e4u-worldwide.com',
-    image: 'https://wilkiedevs.com/wp-content/uploads/2024/11/e4u-worldwide.jpg',
+    image: '/images/case-study-2.webp',
     technologies: ['WordPress', 'Multilingual', 'SEO', 'Corporate'],
     href: '/portfolio/e4u-worldwide'
   },
@@ -35,7 +35,7 @@ const projects = [
     status: 'online',
     type: 'Plataforma Virtual',
     url: 'lwlanguageschool.com',
-    image: 'https://wilkiedevs.com/wp-content/uploads/2024/09/lw-language-school.jpg',
+    image: '/images/case-study-3.webp',
     technologies: ['WordPress', 'LMS', 'E-learning', 'Responsive'],
     href: '/portfolio/lw-language-school'
   },
@@ -46,7 +46,7 @@ const projects = [
     status: 'online',
     type: 'Arquitectura',
     url: 'lamariana.com.co',
-    image: 'https://wilkiedevs.com/wp-content/uploads/2024/06/condominio-la-mariana.jpg',
+    image: '/images/2025/Captura-de-pantalla-2025-01-07-201055.png',
     technologies: ['WordPress', 'Gallery', 'Architecture', 'SEO'],
     href: '/portfolio/condominio-la-mariana'
   },
@@ -57,7 +57,7 @@ const projects = [
     status: 'online',
     type: 'Corporativo',
     url: 'precisionwrapz.com',
-    image: 'https://wilkiedevs.com/wp-content/uploads/2024/04/precision-wrapz.jpg',
+    image: '/images/2025/CUBE.png',
     technologies: ['WordPress', 'Portfolio', 'Automotive', 'Gallery'],
     href: '/portfolio/precision-wrapz'
   },
@@ -68,7 +68,7 @@ const projects = [
     status: 'online',
     type: 'Corporativo',
     url: 'grupometric.com.co',
-    image: 'https://wilkiedevs.com/wp-content/uploads/2024/05/grupo-metric.jpg',
+    image: '/images/2024/Captura-de-pantalla-2024-11-07-170026.png',
     technologies: ['WordPress', 'Corporate', 'Multi-site', 'SEO'],
     href: '/portfolio/grupo-metric'
   }

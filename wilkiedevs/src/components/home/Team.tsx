@@ -8,7 +8,7 @@ const teamMembers = [
   {
     name: 'Sam Wilkie',
     role: 'CEO/Fundador',
-    image: 'https://wilkiedevs.com/wp-content/uploads/2024/03/sam-wilkie-ceo.jpg',
+    image: '/images/2024/hola.webp',
     social: {
       linkedin: '#',
       behance: '#',
@@ -18,7 +18,7 @@ const teamMembers = [
   {
     name: 'Juliana Urbano',
     role: 'Productora Audiovisual',
-    image: 'https://wilkiedevs.com/wp-content/uploads/2024/03/juliana-urbano.jpg',
+    image: '/images/2024/fotografia.webp',
     social: {
       linkedin: '#',
       behance: '#'
@@ -27,7 +27,7 @@ const teamMembers = [
   {
     name: 'Diego Durán',
     role: 'Desarrollador / Comercial',
-    image: 'https://wilkiedevs.com/wp-content/uploads/2024/03/diego-duran.jpg',
+    image: '/images/2024/produccion.webp',
     social: {
       youtube: '#'
     }

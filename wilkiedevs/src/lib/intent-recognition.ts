@@ -42,10 +42,7 @@ export interface ConversationContext {
 
 export class IntentRecognitionService {
   private n8nWebhooks = {
-    mainChat: 'https://n8n.wilkiedevs.com/webhook/c4ce0742-8638-47b6-9507-a8bd7bb63896',
-    leadCapture: 'https://n8n.wilkiedevs.com/webhook/lead-capture',
-    quoteGeneration: 'https://n8n.wilkiedevs.com/webhook/generate-quote',
-    conversationMetrics: 'https://n8n.wilkiedevs.com/webhook/conversation-metrics'
+    mainChat: 'https://n8n.wilkiedevs.com/webhook/chatbot-rebecca'
   };
 
   constructor() {

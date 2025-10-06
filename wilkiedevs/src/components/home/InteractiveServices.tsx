@@ -65,7 +65,7 @@ export default function InteractiveServices() {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("https://wilkiedevs.com/wp-content/uploads/2024/01/office-background.jpg")',
+          backgroundImage: 'url("/images/2024/bg.webp")',
           filter: 'grayscale(100%) brightness(0.3)'
         }}
       />
