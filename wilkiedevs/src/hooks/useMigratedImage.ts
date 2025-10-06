@@ -49,16 +49,16 @@ export function useMigratedImage(
 // Hook específico para el logo
 export function useWilkieDevsLogo() {
   return {
-    imageUrl: 'https://wilkiedevs.com/wp-content/uploads/2025/01/Wilkie-devs-light.svg',
+    imageUrl: '/images/2025/Wilkie-devs-light.svg',
     isLoading: false,
     error: null
   };
 }
 
-// Hook específico para el avatar de Sammy
+// Hook específico para el avatar de Sammy (Rebecca)
 export function useSammyAvatar() {
   return {
-    imageUrl: 'https://wilkiedevs.com/wp-content/uploads/2024/12/sammy-avatar.png',
+    imageUrl: '/images/2025/rebecca.webp',
     isLoading: false,
     error: null
   };
@@ -67,7 +67,16 @@ export function useSammyAvatar() {
 // Hook específico para el fondo del hero
 export function useHeroBackground() {
   return {
-    imageUrl: 'https://wilkiedevs.com/wp-content/uploads/2025/04/descuento.webp',
+    imageUrl: '/images/2025/descuento.webp',
+    isLoading: false,
+    error: null
+  };
+}
+
+// Hook para logo alternativo (cropped)
+export function useWilkieDevsLogoCropped() {
+  return {
+    imageUrl: '/images/2023/cropped-circles-logo.png',
     isLoading: false,
     error: null
   };

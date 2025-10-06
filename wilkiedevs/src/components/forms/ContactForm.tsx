@@ -84,26 +84,35 @@ export default function ContactForm() {
     if (!validateForm()) return
 
     setIsSubmitting(true)
+    setErrors({}) // Limpiar errores previos
 
     try {
+      // Preparar datos para la API
+      const leadData = {
+        name: formData.name.trim(),
+        email: formData.email.toLowerCase().trim(),
+        phone: formData.phone.trim() || undefined,
+        company: formData.company.trim() || undefined,
+        service_interest: formData.service,
+        message: formData.message.trim(),
+        budget: formData.budget || undefined,
+        source: 'contact-form'
+      }
+
       // Enviar a API de leads
       const response = await fetch('/api/leads', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          company: formData.company,
-          service_interest: `${formData.service} - ${formData.message}`,
-          source: 'contact_form'
-        }),
+        body: JSON.stringify(leadData),
       })
+
+      const result = await response.json()
 
       if (response.ok) {
         setIsSubmitted(true)
+        
         // Reset form
         setFormData({
           name: '',
@@ -114,12 +123,34 @@ export default function ContactForm() {
           message: '',
           budget: ''
         })
+
+        // Mostrar mensaje personalizado si es actualización
+        if (result.isUpdate) {
+          console.log('Lead actualizado exitosamente')
+        }
       } else {
-        throw new Error('Error al enviar el formulario')
+        // Manejar errores específicos de la API
+        if (response.status === 429) {
+          setErrors({ submit: 'Has enviado demasiadas solicitudes. Por favor espera un minuto antes de intentar de nuevo.' })
+        } else if (response.status === 400 && result.errors) {
+          // Mostrar errores de validación específicos
+          const fieldErrors: FormErrors = {}
+          result.errors.forEach((error: string) => {
+            if (error.includes('nombre')) fieldErrors.name = error
+            else if (error.includes('email')) fieldErrors.email = error
+            else if (error.includes('teléfono')) fieldErrors.phone = error
+            else fieldErrors.submit = error
+          })
+          setErrors(fieldErrors)
+        } else {
+          setErrors({ submit: result.message || 'Error al enviar el formulario. Por favor intenta de nuevo.' })
+        }
       }
     } catch (error) {
-      console.error('Error:', error)
-      setErrors({ submit: 'Hubo un error al enviar el formulario. Por favor intenta de nuevo.' })
+      console.error('Error enviando formulario:', error)
+      setErrors({ 
+        submit: 'Error de conexión. Verifica tu internet e intenta de nuevo.' 
+      })
     } finally {
       setIsSubmitting(false)
     }

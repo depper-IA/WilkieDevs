@@ -1,199 +1,171 @@
-// Script para ejecutar migración de imágenes
-const { createClient } = require('@supabase/supabase-js');
+// Script para descargar TODAS las imágenes del sitio wilkiedevs.com
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
 
-const SUPABASE_URL = 'https://ziglshuhhtsthwedrous.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppZ2xzaHVoaHRzdGh3ZWRyb3VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5NDczOTcsImV4cCI6MjA3MzUyMzM5N30.X_TT0-sA2y1Z5-BeizOxCMYaZraPM2IQo1-rqDMsF08';
-
-const imagesToMigrate = [
-  // Imágenes básicas
-  {
-    originalUrl: 'https://wilkiedevs.com/wp-content/uploads/2023/02/cropped-circles-logo.png',
-    filename: 'wilkiedevs-logo.png',
-    altText: 'WilkieDevs Logo',
-    usageContext: 'logo'
-  },
-  {
-    originalUrl: 'https://wilkiedevs.com/wp-content/uploads/2024/12/sammy-avatar.png',
-    filename: 'sammy-avatar.png',
-    altText: 'Sammy - Mascota WilkieDevs',
-    usageContext: 'avatar'
-  },
-  {
-    originalUrl: 'https://wilkiedevs.com/wp-content/uploads/2025/04/descuento.webp',
-    filename: 'hero-background.webp',
-    altText: 'Fondo Hero WilkieDevs',
-    usageContext: 'hero'
-  },
-  
-  // Imágenes del portafolio
-  {
-    originalUrl: 'https://wilkiedevs.com/wp-content/uploads/2025/01/la-montana-agromercados.jpg',
-    filename: 'proyecto-la-montana-agromercados.jpg',
-    altText: 'La Montaña Agromercados - Proyecto WilkieDevs',
-    usageContext: 'project'
-  },
-  {
-    originalUrl: 'https://wilkiedevs.com/wp-content/uploads/2024/11/e4u-worldwide.jpg',
-    filename: 'proyecto-e4u-worldwide.jpg',
-    altText: 'E4U Worldwide Corp - Proyecto WilkieDevs',
-    usageContext: 'project'
-  },
-  {
-    originalUrl: 'https://wilkiedevs.com/wp-content/uploads/2024/09/lw-language-school.jpg',
-    filename: 'proyecto-lw-language-school.jpg',
-    altText: 'LW Language School - Proyecto WilkieDevs',
-    usageContext: 'project'
-  },
-  {
-    originalUrl: 'https://wilkiedevs.com/wp-content/uploads/2024/06/condominio-la-mariana.jpg',
-    filename: 'proyecto-condominio-la-mariana.jpg',
-    altText: 'Condominio La Mariana - Proyecto WilkieDevs',
-    usageContext: 'project'
-  },
-  {
-    originalUrl: 'https://wilkiedevs.com/wp-content/uploads/2024/04/precision-wrapz.jpg',
-    filename: 'proyecto-precision-wrapz.jpg',
-    altText: 'Precision Wrapz - Proyecto WilkieDevs',
-    usageContext: 'project'
-  },
-  {
-    originalUrl: 'https://wilkiedevs.com/wp-content/uploads/2024/05/grupo-metric.jpg',
-    filename: 'proyecto-grupo-metric.jpg',
-    altText: 'Grupo Metric - Proyecto WilkieDevs',
-    usageContext: 'project'
-  }
-];
-
-async function downloadImage(url) {
-  try {
-    console.log(`📥 Descargando: ${url}`);
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`❌ Error ${response.status}: ${url}`);
-      return null;
-    }
-    return await response.arrayBuffer();
-  } catch (error) {
-    console.error(`❌ Error de red: ${url}`, error.message);
-    return null;
-  }
-}
-
-async function migrateImages() {
-  console.log('🚀 Iniciando migración de imágenes...');
-  
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  
-  // Verificar si el bucket existe, si no, crearlo
-  try {
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some(bucket => bucket.name === 'wilkiedevs-media');
-    
-    if (!bucketExists) {
-      console.log('📁 Creando bucket wilkiedevs-media...');
-      const { error } = await supabase.storage.createBucket('wilkiedevs-media', {
-        public: true
+// Función para obtener el HTML del sitio
+async function fetchHTML(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (response) => {
+      let data = '';
+      response.on('data', (chunk) => {
+        data += chunk;
       });
-      if (error) {
-        console.error('❌ Error creando bucket:', error);
-        return;
-      }
-      console.log('✅ Bucket creado exitosamente');
-    }
-  } catch (error) {
-    console.error('❌ Error verificando bucket:', error);
-  }
-
-  let success = 0;
-  let failed = 0;
-
-  for (const imageData of imagesToMigrate) {
-    try {
-      console.log(`\n🔄 Procesando: ${imageData.filename}`);
-      
-      // Verificar si ya existe
-      const { data: existing } = await supabase
-        .from('wilkiedevs_media')
-        .select('*')
-        .eq('original_url', imageData.originalUrl)
-        .single();
-
-      if (existing) {
-        console.log(`✅ Ya existe: ${imageData.filename}`);
-        success++;
-        continue;
-      }
-
-      // Descargar imagen
-      const imageBuffer = await downloadImage(imageData.originalUrl);
-      if (!imageBuffer) {
-        failed++;
-        continue;
-      }
-
-      // Determinar tipo de contenido
-      const extension = imageData.filename.split('.').pop()?.toLowerCase();
-      const contentType = extension === 'png' ? 'image/png' : 
-                         extension === 'jpg' || extension === 'jpeg' ? 'image/jpeg' :
-                         extension === 'webp' ? 'image/webp' : 'image/png';
-
-      // Subir a Supabase Storage
-      console.log(`📤 Subiendo a Supabase: ${imageData.filename}`);
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('wilkiedevs-media')
-        .upload(`images/${imageData.filename}`, imageBuffer, {
-          contentType,
-          upsert: true
-        });
-
-      if (uploadError) {
-        console.error(`❌ Error subiendo: ${uploadError.message}`);
-        failed++;
-        continue;
-      }
-
-      // Obtener URL pública
-      const { data: publicData } = supabase.storage
-        .from('wilkiedevs-media')
-        .getPublicUrl(`images/${imageData.filename}`);
-
-      // Registrar en base de datos
-      console.log(`💾 Registrando en base de datos...`);
-      const { error: dbError } = await supabase
-        .from('wilkiedevs_media')
-        .insert({
-          original_url: imageData.originalUrl,
-          supabase_url: publicData.publicUrl,
-          filename: imageData.filename,
-          file_type: contentType,
-          file_size: imageBuffer.byteLength,
-          alt_text: imageData.altText,
-          usage_context: imageData.usageContext
-        });
-
-      if (dbError) {
-        console.error(`❌ Error en base de datos: ${dbError.message}`);
-        failed++;
-        continue;
-      }
-
-      console.log(`✅ Migrado exitosamente: ${imageData.filename}`);
-      console.log(`🔗 URL: ${publicData.publicUrl}`);
-      success++;
-
-    } catch (error) {
-      console.error(`❌ Error procesando ${imageData.filename}:`, error.message);
-      failed++;
-    }
-
-    // Pausa entre migraciones
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-
-  console.log(`\n📊 Migración completada:`);
-  console.log(`✅ Exitosas: ${success}`);
-  console.log(`❌ Fallidas: ${failed}`);
-  console.log(`📁 Total: ${success + failed}`);
+      response.on('end', () => {
+        resolve(data);
+      });
+    }).on('error', (err) => {
+      reject(err);
+    });
+  });
 }
 
-migrateImages().catch(console.error);
+// Función para extraer URLs de imágenes del HTML
+function extractImageUrls(html) {
+  const imageUrls = new Set();
+  
+  // Buscar todas las URLs de imágenes en el HTML
+  const patterns = [
+    /https:\/\/wilkiedevs\.com\/wp-content\/uploads\/[^"'\s)]+\.(jpg|jpeg|png|gif|webp|svg)/gi,
+    /"(https:\/\/wilkiedevs\.com\/wp-content\/uploads\/[^"]+\.(jpg|jpeg|png|gif|webp|svg))"/gi,
+    /'(https:\/\/wilkiedevs\.com\/wp-content\/uploads\/[^']+\.(jpg|jpeg|png|gif|webp|svg))'/gi
+  ];
+
+  patterns.forEach(pattern => {
+    const matches = html.match(pattern);
+    if (matches) {
+      matches.forEach(match => {
+        // Limpiar la URL
+        const url = match.replace(/['"]/g, '');
+        if (url.startsWith('https://wilkiedevs.com/wp-content/uploads/')) {
+          imageUrls.add(url);
+        }
+      });
+    }
+  });
+
+  return Array.from(imageUrls);
+}
+
+// Función para descargar archivo
+function downloadFile(url, filepath) {
+  return new Promise((resolve, reject) => {
+    // Crear directorio si no existe
+    const dir = path.dirname(filepath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const file = fs.createWriteStream(filepath);
+    
+    https.get(url, (response) => {
+      if (response.statusCode === 200) {
+        response.pipe(file);
+        file.on('finish', () => {
+          file.close();
+          resolve(filepath);
+        });
+      } else if (response.statusCode === 301 || response.statusCode === 302) {
+        // Manejar redirecciones
+        const redirectUrl = response.headers.location;
+        if (redirectUrl) {
+          downloadFile(redirectUrl, filepath).then(resolve).catch(reject);
+        } else {
+          reject(new Error(`Redirect without location: ${response.statusCode}`));
+        }
+      } else {
+        reject(new Error(`HTTP ${response.statusCode}: ${url}`));
+      }
+    }).on('error', (err) => {
+      fs.unlink(filepath, () => {}); // Eliminar archivo parcial
+      reject(err);
+    });
+  });
+}
+
+// Función para generar nombre de archivo local
+function getLocalPath(url) {
+  const urlPath = new URL(url).pathname;
+  const filename = path.basename(urlPath);
+  const year = urlPath.match(/\/(\d{4})\//)?.[1] || 'misc';
+  
+  // Organizar por año
+  return `public/images/${year}/${filename}`;
+}
+
+async function downloadAllImages() {
+  console.log('🚀 Iniciando descarga automática de TODAS las imágenes de wilkiedevs.com...');
+  
+  try {
+    // 1. Obtener HTML de la página principal
+    console.log('📄 Obteniendo HTML del sitio...');
+    const html = await fetchHTML('https://wilkiedevs.com');
+    
+    // 2. Extraer URLs de imágenes
+    console.log('🔍 Extrayendo URLs de imágenes...');
+    const imageUrls = extractImageUrls(html);
+    
+    console.log(`📊 Encontradas ${imageUrls.length} imágenes únicas`);
+    
+    if (imageUrls.length === 0) {
+      console.log('⚠️  No se encontraron imágenes para descargar');
+      return;
+    }
+
+    // 3. Mostrar lista de imágenes encontradas
+    console.log('\n📋 Imágenes encontradas:');
+    imageUrls.forEach((url, index) => {
+      console.log(`${index + 1}. ${path.basename(url)}`);
+    });
+
+    // 4. Descargar todas las imágenes
+    console.log('\n📥 Iniciando descarga...\n');
+    
+    let success = 0;
+    let failed = 0;
+
+    for (let i = 0; i < imageUrls.length; i++) {
+      const url = imageUrls[i];
+      const localPath = getLocalPath(url);
+      
+      try {
+        console.log(`📥 [${i + 1}/${imageUrls.length}] ${path.basename(url)}`);
+        
+        // Verificar si ya existe
+        if (fs.existsSync(localPath)) {
+          console.log(`   ⏭️  Ya existe, saltando...`);
+          success++;
+          continue;
+        }
+        
+        await downloadFile(url, localPath);
+        console.log(`   ✅ Descargado: ${localPath}`);
+        success++;
+
+        // Pausa pequeña entre descargas
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+      } catch (error) {
+        console.log(`   ❌ Error: ${error.message}`);
+        failed++;
+      }
+    }
+
+    // 5. Resumen final
+    console.log(`\n📊 Descarga completada:`);
+    console.log(`✅ Exitosas: ${success}`);
+    console.log(`❌ Fallidas: ${failed}`);
+    console.log(`📁 Total procesadas: ${success + failed}`);
+    
+    if (success > 0) {
+      console.log('\n🎉 ¡Imágenes descargadas automáticamente!');
+      console.log('📁 Ubicación: public/images/[año]/[archivo]');
+      console.log('🔄 Reinicia el servidor de desarrollo para ver los cambios.');
+    }
+
+  } catch (error) {
+    console.error('💥 Error general:', error.message);
+  }
+}
+
+downloadAllImages().catch(console.error);

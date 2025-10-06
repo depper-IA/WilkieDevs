@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import Hero from '@/components/home/Hero'
 import InteractiveServices from '@/components/home/InteractiveServices'
 import About from '@/components/home/About'
@@ -33,12 +34,12 @@ export default function Home() {
               >
                 Solicitar Demo
               </a>
-              <a
+              <Link
                 href="/servicios"
                 className="bg-transparent border-2 border-white text-white hover:bg-white/10 px-8 py-3 rounded-md text-lg font-medium transition-colors"
               >
                 Ver Servicios
-              </a>
+              </Link>
             </div>
           </div>
         </div>

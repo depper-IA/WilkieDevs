@@ -18,20 +18,29 @@ export interface WilkieDevsLead {
   name: string;
   email: string;
   phone?: string;
+  company?: string;
   service_interest?: string;
+  message?: string;
+  budget?: string;
   source?: string;
-  status?: 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
+  status?: 'new' | 'contacted' | 'qualified' | 'converted' | 'lost' | 'deleted';
+  score?: number;
   created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
 }
 
 export interface WilkieDevsQuote {
   id?: string;
   lead_id?: string;
-  project_type: 'wordpress' | 'loveable' | 'custom' | 'automation';
+  project_type: 'landing-page' | 'corporate' | 'ecommerce' | 'custom-app' | 'automation';
   requirements: string;
+  features?: string[];
+  timeline?: string;
   estimated_cost?: number;
   pdf_url?: string;
   status?: 'draft' | 'sent' | 'accepted' | 'rejected';
+  valid_until?: string;
   created_at?: string;
 }
 
@@ -165,6 +174,8 @@ export class SupabaseClient {
 export class N8NClient {
   private baseUrl: string;
   private apiKey: string;
+  private maxRetries: number = 3;
+  private retryDelay: number = 1000; // 1 segundo
 
   constructor() {
     this.baseUrl = n8nConfig.apiUrl;
@@ -178,26 +189,45 @@ export class N8NClient {
     };
   }
 
-  async triggerWorkflow(workflowId: string, data: any): Promise<any> {
+  private async delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private async retryRequest<T>(
+    requestFn: () => Promise<T>,
+    retries: number = this.maxRetries
+  ): Promise<T | null> {
     try {
+      return await requestFn();
+    } catch (error) {
+      if (retries > 0) {
+        console.warn(`Request failed, retrying... (${retries} attempts left)`);
+        await this.delay(this.retryDelay);
+        return this.retryRequest(requestFn, retries - 1);
+      }
+      console.error('Request failed after all retries:', error);
+      return null;
+    }
+  }
+
+  async triggerWorkflow(workflowId: string, data: any): Promise<any> {
+    return this.retryRequest(async () => {
       const response = await fetch(`${this.baseUrl}/api/v1/workflows/${workflowId}/execute`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(data)
       });
 
-      if (response.ok) {
-        return await response.json();
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      throw new Error(`Error triggering workflow: ${response.statusText}`);
-    } catch (error) {
-      console.error('N8N trigger error:', error);
-      return null;
-    }
+
+      return await response.json();
+    });
   }
 
   async sendWebhook(webhookUrl: string, data: any): Promise<any> {
-    try {
+    return this.retryRequest(async () => {
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
@@ -206,225 +236,103 @@ export class N8NClient {
         body: JSON.stringify(data)
       });
 
-      if (response.ok) {
-        return await response.json();
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      throw new Error(`Error sending webhook: ${response.statusText}`);
+
+      return await response.json();
+    });
+  }
+
+  // Probar conexión con N8N
+  async testConnection(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/healthz`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+      return response.ok;
     } catch (error) {
-      console.error('Webhook error:', error);
-      return null;
+      console.error('N8N connection test failed:', error);
+      return false;
     }
   }
 
-  // Crear workflows específicos para WilkieDevs
-  async createLeadWorkflow(): Promise<string | null> {
-    const workflowData = {
-      name: 'WilkieDevs - Procesamiento de Leads',
-      nodes: [
-        {
-          name: 'Webhook',
-          type: 'n8n-nodes-base.webhook',
-          position: [250, 300],
-          parameters: {
-            path: 'wilkiedevs-new-lead',
-            httpMethod: 'POST'
-          }
-        },
-        {
-          name: 'Enviar Email Notificación',
-          type: 'n8n-nodes-base.emailSend',
-          position: [450, 300],
-          parameters: {
-            to: 'info@wilkie-design.com',
-            subject: 'Nuevo Lead - WilkieDevs',
-            text: 'Se ha registrado un nuevo lead en el sitio web.'
-          }
-        },
-        {
-          name: 'Guardar en CRM',
-          type: 'n8n-nodes-base.httpRequest',
-          position: [650, 300],
-          parameters: {
-            method: 'POST',
-            url: 'https://wilkiedevs.com/api/crm/leads'
-          }
-        }
-      ],
-      connections: {
-        'Webhook': {
-          main: [
-            [
-              {
-                node: 'Enviar Email Notificación',
-                type: 'main',
-                index: 0
-              }
-            ]
-          ]
-        },
-        'Enviar Email Notificación': {
-          main: [
-            [
-              {
-                node: 'Guardar en CRM',
-                type: 'main',
-                index: 0
-              }
-            ]
-          ]
-        }
-      }
-    };
-
-    try {
+  // Obtener lista de workflows
+  async getWorkflows(): Promise<any[] | null> {
+    return this.retryRequest(async () => {
       const response = await fetch(`${this.baseUrl}/api/v1/workflows`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify(workflowData)
+        method: 'GET',
+        headers: this.getHeaders()
       });
 
-      if (response.ok) {
-        const workflow = await response.json();
-        return workflow.id;
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      return null;
-    } catch (error) {
-      console.error('Error creating lead workflow:', error);
-      return null;
-    }
+
+      const result = await response.json();
+      return result.data || [];
+    });
   }
 
-  // Crear workflow para cotizaciones
-  async createQuoteWorkflow(): Promise<string | null> {
-    const workflowData = {
-      name: 'WilkieDevs - Procesamiento de Cotizaciones',
-      nodes: [
-        {
-          name: 'Webhook Cotización',
-          type: 'n8n-nodes-base.webhook',
-          position: [250, 300],
-          parameters: {
-            path: 'wilkiedevs-new-quote',
-            httpMethod: 'POST'
-          }
-        },
-        {
-          name: 'Generar PDF',
-          type: 'n8n-nodes-base.httpRequest',
-          position: [450, 300],
-          parameters: {
-            method: 'POST',
-            url: 'https://wilkiedevs.com/api/generate-pdf'
-          }
-        },
-        {
-          name: 'Enviar Cotización por Email',
-          type: 'n8n-nodes-base.emailSend',
-          position: [650, 300],
-          parameters: {
-            to: '={{$json["email"]}}',
-            subject: 'Tu cotización personalizada - WilkieDevs',
-            text: 'Adjunto encontrarás tu cotización personalizada.'
-          }
-        },
-        {
-          name: 'Programar Seguimiento',
-          type: 'n8n-nodes-base.schedule',
-          position: [850, 300],
-          parameters: {
-            rule: {
-              interval: [
-                {
-                  field: 'days',
-                  value: 3
-                }
-              ]
-            }
-          }
-        }
-      ]
-    };
-
-    try {
-      const response = await fetch(`${this.baseUrl}/api/v1/workflows`, {
+  // Activar workflow
+  async activateWorkflow(workflowId: string): Promise<boolean> {
+    const result = await this.retryRequest(async () => {
+      const response = await fetch(`${this.baseUrl}/api/v1/workflows/${workflowId}/activate`, {
         method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify(workflowData)
+        headers: this.getHeaders()
       });
 
-      if (response.ok) {
-        const workflow = await response.json();
-        return workflow.id;
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      return null;
-    } catch (error) {
-      console.error('Error creating quote workflow:', error);
-      return null;
-    }
+
+      return await response.json();
+    });
+
+    return result !== null;
   }
 
-  // Crear workflow para contenido automático
-  async createContentWorkflow(): Promise<string | null> {
-    const workflowData = {
-      name: 'WilkieDevs - Generación de Contenido Automático',
-      nodes: [
-        {
-          name: 'Cron Diario',
-          type: 'n8n-nodes-base.cron',
-          position: [250, 300],
-          parameters: {
-            rule: {
-              hour: 9,
-              minute: 0
-            }
-          }
-        },
-        {
-          name: 'Generar Contenido IA',
-          type: 'n8n-nodes-base.httpRequest',
-          position: [450, 300],
-          parameters: {
-            method: 'POST',
-            url: 'https://wilkiedevs.com/api/generate-content'
-          }
-        },
-        {
-          name: 'Publicar en Instagram',
-          type: 'n8n-nodes-base.httpRequest',
-          position: [650, 300],
-          parameters: {
-            method: 'POST',
-            url: 'https://graph.instagram.com/me/media'
-          }
-        },
-        {
-          name: 'Guardar en Blog',
-          type: 'n8n-nodes-base.httpRequest',
-          position: [650, 450],
-          parameters: {
-            method: 'POST',
-            url: 'https://wilkiedevs.com/api/blog/posts'
-          }
-        }
-      ]
+  // Desactivar workflow
+  async deactivateWorkflow(workflowId: string): Promise<boolean> {
+    const result = await this.retryRequest(async () => {
+      const response = await fetch(`${this.baseUrl}/api/v1/workflows/${workflowId}/deactivate`, {
+        method: 'POST',
+        headers: this.getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    });
+
+    return result !== null;
+  }
+
+  // Crear workflow con tag WILKIEDEVS
+  async createWorkflow(workflowData: any): Promise<string | null> {
+    // Asegurar que el workflow tenga el tag WILKIEDEVS
+    const workflowWithTag = {
+      ...workflowData,
+      tags: [...(workflowData.tags || []), 'WILKIEDEVS']
     };
 
-    try {
+    return this.retryRequest(async () => {
       const response = await fetch(`${this.baseUrl}/api/v1/workflows`, {
         method: 'POST',
         headers: this.getHeaders(),
-        body: JSON.stringify(workflowData)
+        body: JSON.stringify(workflowWithTag)
       });
 
-      if (response.ok) {
-        const workflow = await response.json();
-        return workflow.id;
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      return null;
-    } catch (error) {
-      console.error('Error creating content workflow:', error);
-      return null;
-    }
+
+      const result = await response.json();
+      return result.data?.id || null;
+    });
   }
 }
 

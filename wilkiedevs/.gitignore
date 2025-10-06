@@ -41,4 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 # Kiro MCP settings (contains sensitive tokens)
+../.kiro/settings/
 ../.kiro/settings/mcp.json

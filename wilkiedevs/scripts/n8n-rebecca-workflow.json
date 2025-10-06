@@ -1,0 +1,482 @@
+{
+  "name": "[WILKIEDEVS] Rebecca Chatbot - Complete System",
+  "nodes": [
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-lite",
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 1000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [800, 400],
+      "id": "gemini-model",
+      "name": "Gemini AI Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "t38zPMWleOvlSpPc",
+          "name": "Que movida cu"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [1200, 300],
+      "id": "redis-memory",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "C5t2uHF2Ai0jH4Vd",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "tableName": {
+          "__rl": true,
+          "value": "wilkiedevs_knowledge_documents",
+          "mode": "list"
+        },
+        "options": {
+          "topK": 5,
+          "similarityThreshold": 0.6
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [1400, 400],
+      "id": "supabase-rag",
+      "name": "WilkieDevs Knowledge Base",
+      "credentials": {
+        "supabaseApi": {
+          "id": "bfLKR2L5JcKUgwe3",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.chatInput }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "greeting",
+              "description": "El usuario saluda o inicia la conversación. Ejemplos: 'hola', 'buenos días', 'hi', 'qué tal', 'buenas tardes'."
+            },
+            {
+              "category": "service_inquiry",
+              "description": "El usuario pregunta sobre servicios específicos como desarrollo web, e-commerce, automatización, apps móviles. Ejemplos: 'necesito un sitio web', 'quiero una tienda online', 'automatizar procesos', 'app móvil'."
+            },
+            {
+              "category": "pricing_inquiry",
+              "description": "El usuario pregunta sobre precios, costos, cotizaciones o presupuestos. Ejemplos: 'cuánto cuesta', 'precio', 'cotización', 'presupuesto', 'tarifas'."
+            },
+            {
+              "category": "timeline_inquiry",
+              "description": "El usuario pregunta sobre tiempos de desarrollo, plazos o cronogramas. Ejemplos: 'cuánto tiempo', 'cuándo estará listo', 'plazo', 'duración'."
+            },
+            {
+              "category": "contact_request",
+              "description": "El usuario quiere contactar al equipo, solicitar reunión o hablar con alguien. Ejemplos: 'quiero hablar con alguien', 'contacto', 'reunión', 'llamada'."
+            },
+            {
+              "category": "lead_capture",
+              "description": "El usuario proporciona información personal como nombre, email, teléfono, empresa. Ejemplos: 'mi nombre es', 'mi email es', 'trabajo en', 'soy de la empresa'."
+            },
+            {
+              "category": "support_request",
+              "description": "El usuario reporta problemas técnicos o solicita soporte. Ejemplos: 'tengo un problema', 'no funciona', 'error', 'ayuda técnica'."
+            },
+            {
+              "category": "general_faq",
+              "description": "Preguntas generales sobre la empresa, procesos, políticas. Ejemplos: 'qué incluye el servicio', 'cómo trabajan', 'dónde están ubicados'."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [600, 200],
+      "id": "intent-classifier",
+      "name": "Rebecca Intent Classifier"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [200, 200],
+      "id": "chat-trigger",
+      "name": "Rebecca Chat Webhook",
+      "webhookId": "rebecca-chat-main"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "# ROL: Rebecca - Asistente Virtual de WilkieDevs\n\nEres Rebecca, la asistente virtual profesional de WilkieDevs, una agencia especializada en desarrollo web, automatización y soluciones tecnológicas.\n\n## TU PERSONALIDAD\n- Profesional pero amigable\n- Experta en tecnología\n- Enfocada en ayudar y resolver problemas\n- Directa y eficiente\n- Empática con las necesidades del cliente\n\n## SERVICIOS DE WILKIEDEVS\n1. **Desarrollo Web**: Sitios corporativos, landing pages, aplicaciones web\n2. **E-commerce**: Tiendas online completas con gestión de inventario\n3. **Automatización**: Procesos empresariales con N8N, integración de APIs\n4. **Apps Móviles**: Desarrollo nativo e híbrido para iOS y Android\n5. **Consultoría**: Transformación digital y estrategia tecnológica\n\n## DIRECTRICES DE RESPUESTA\n1. **Usa la herramienta de conocimiento**: Siempre busca información en la base de conocimientos antes de responder\n2. **Sé específica**: Proporciona información detallada sobre servicios, precios y tiempos cuando esté disponible\n3. **Captura leads**: Cuando detectes interés, solicita información de contacto de manera natural\n4. **No inventes**: Si no tienes información específica, sé honesta y ofrece conectar con el equipo\n5. **Mantén el contexto**: Recuerda la conversación previa para dar continuidad\n\n## MANEJO DE INTENCIONES\n- **Saludos**: Responde cordialmente y pregunta cómo puedes ayudar\n- **Consultas de servicios**: Usa la base de conocimientos y proporciona información detallada\n- **Precios**: Proporciona rangos de precios y ofrece cotización personalizada\n- **Tiempos**: Explica los plazos típicos según el tipo de proyecto\n- **Contacto**: Facilita la conexión con el equipo y captura información\n- **Soporte**: Escucha el problema y ofrece soluciones o escalación\n\n## CAPTURA DE LEADS\nCuando un usuario muestre interés:\n1. Pregunta por su nombre\n2. Solicita email de contacto\n3. Pregunta sobre su empresa/proyecto\n4. Entiende sus necesidades específicas\n5. Ofrece siguiente paso (cotización, reunión, etc.)\n\n## FECHA Y HORA ACTUAL\n{{$now}}\n\n## EJEMPLO DE INTERACCIÓN\n**Usuario**: Necesito un sitio web para mi empresa\n**Rebecca**: ¡Perfecto! Te puedo ayudar con el desarrollo de tu sitio web corporativo. Para darte la mejor recomendación, ¿podrías contarme un poco sobre tu empresa y qué tipo de sitio necesitas? También me gustaría conocer tu nombre para personalizar nuestra conversación.\n\nRecuerda: Eres la cara de WilkieDevs, representa profesionalismo y excelencia en cada interacción.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [1000, 200],
+      "id": "rebecca-agent",
+      "name": "Rebecca Main Agent"
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "tableId": "wilkiedevs_leads",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $json.lead_name || 'Lead desde Rebecca' }}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{ $json.lead_email || '' }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $json.lead_phone || '' }}"
+            },
+            {
+              "fieldId": "company",
+              "fieldValue": "={{ $json.lead_company || '' }}"
+            },
+            {
+              "fieldId": "service_interest",
+              "fieldValue": "={{ $json.service_interest || 'Consulta general' }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $json.message || 'Lead capturado por Rebecca' }}"
+            },
+            {
+              "fieldId": "source",
+              "fieldValue": "rebecca-chatbot"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "new"
+            },
+            {
+              "fieldId": "score",
+              "fieldValue": "={{ $json.lead_score || 50 }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSupabase",
+      "typeVersion": 1,
+      "position": [1400, 600],
+      "id": "lead-capture-tool",
+      "name": "Lead Capture Tool",
+      "credentials": {
+        "supabaseApi": {
+          "id": "bfLKR2L5JcKUgwe3",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "greeting",
+              "leftValue": "={{ $json.category }}",
+              "rightValue": "greeting",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "service_inquiry",
+              "leftValue": "={{ $json.category }}",
+              "rightValue": "service_inquiry",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "pricing_inquiry",
+              "leftValue": "={{ $json.category }}",
+              "rightValue": "pricing_inquiry",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "contact_request",
+              "leftValue": "={{ $json.category }}",
+              "rightValue": "contact_request",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "lead_capture",
+              "leftValue": "={{ $json.category }}",
+              "rightValue": "lead_capture",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [800, 200],
+      "id": "intent-router",
+      "name": "Intent Router"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "response",
+              "name": "response",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "intent",
+              "name": "intent",
+              "value": "={{ $('intent-classifier').item.json.category }}",
+              "type": "string"
+            },
+            {
+              "id": "confidence",
+              "name": "confidence",
+              "value": "={{ $('intent-classifier').item.json.confidence || 0.8 }}",
+              "type": "number"
+            },
+            {
+              "id": "timestamp",
+              "name": "timestamp",
+              "value": "={{ $now }}",
+              "type": "string"
+            },
+            {
+              "id": "session_id",
+              "name": "session_id",
+              "value": "={{ $json.sessionId || 'session-' + $now.format('X') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1200, 200],
+      "id": "format-response",
+      "name": "Format Response"
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "tableId": "wilkiedevs_conversations",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "session_id",
+              "fieldValue": "={{ $json.session_id }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "active"
+            },
+            {
+              "fieldId": "metadata",
+              "fieldValue": "={{ { \"intent\": $json.intent, \"confidence\": $json.confidence, \"source\": \"rebecca-chatbot\" } }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSupabase",
+      "typeVersion": 1,
+      "position": [1400, 200],
+      "id": "conversation-logger",
+      "name": "Log Conversation",
+      "credentials": {
+        "supabaseApi": {
+          "id": "bfLKR2L5JcKUgwe3",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Gemini AI Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Rebecca Main Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Rebecca Intent Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Rebecca Main Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WilkieDevs Knowledge Base": {
+      "ai_tool": [
+        [
+          {
+            "node": "Rebecca Main Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rebecca Intent Classifier": {
+      "main": [
+        [
+          {
+            "node": "Intent Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rebecca Chat Webhook": {
+      "main": [
+        [
+          {
+            "node": "Rebecca Intent Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rebecca Main Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Capture Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Rebecca Main Agent",
+            "type": "ai_tool",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Intent Router": {
+      "main": [
+        [
+          {
+            "node": "Rebecca Main Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rebecca Main Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rebecca Main Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rebecca Main Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rebecca Main Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Log Conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    "WILKIEDEVS",
+    "REBECCA",
+    "CHATBOT"
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-10T00:00:00.000Z",
+  "versionId": "1"
+}

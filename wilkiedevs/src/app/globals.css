@@ -1,9 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #A20010;
-  --color-secondary: #2D2D2D;
-  --color-accent: #61CE70;
+  --color-primary: #3B82F6;
+  --color-secondary: #1E293B;
+  --color-accent: #F59E0B;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #06B6D4;
   --color-text-light: #FFFFFF;
   --color-background: #F8F9FA;
   --color-card: #FFFFFF;
@@ -15,39 +19,105 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Componentes personalizados */
+/* Componentes personalizados WilkieDevs */
 .btn-primary {
-  background-color: #A10010;
+  background-color: var(--color-primary);
   color: white;
-  padding: 0.5rem 1.5rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
 }
 
 .btn-primary:hover {
-  background-color: #8a000e;
+  background-color: #2563EB;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2);
 }
 
 .btn-secondary {
-  background-color: #595959;
+  background-color: var(--color-secondary);
   color: white;
-  padding: 0.5rem 1.5rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
-  background-color: #4a4a4a;
+  background-color: #0F172A;
+  transform: translateY(-1px);
 }
 
 .btn-accent {
-  background-color: #61CE70;
+  background-color: var(--color-accent);
   color: white;
-  padding: 0.5rem 1.5rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .btn-accent:hover {
-  background-color: #52b85f;
+  background-color: #D97706;
+  transform: translateY(-1px);
+}
+
+/* Efectos de glassmorphism */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Gradientes WilkieDevs */
+.gradient-primary {
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Cards con estilo WilkieDevs */
+.card-wilkie {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.card-wilkie:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.2);
+}
+
+/* Texto con gradiente */
+.text-gradient {
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
